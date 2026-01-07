@@ -33,9 +33,11 @@ This app will primarily be a simple way to use text-to-speech APIs to listen to 
 - AWS services will be used for the backend
   - API Gateway for the API endpoints
   - Lambda functions for the backend logic
+    - Code will be stored in this repository
   - DynamoDB for tracking usage and statistics
   - Polly for the main text to speech
   - Cognito for authentication and authorization
+  - AWS SAM for deploying the infrastructure
 
 ### Phase 3 Playback Speed:
 
