@@ -2,7 +2,8 @@
 
 This app will primarily be a simple way to use text-to-speech APIs to listen to text at accelerated speeds. 
 
-Tech stack:
+## Tech stack:
+
 - React
 - Tailwind CSS
 - TypeScript
@@ -10,7 +11,10 @@ Tech stack:
 - React Router for navigation
 - Lucide Icons for icons
 
+## Phases:
+
 ### Phase 1 UI:
+
 - reader display:
   - big play/pause button
   - text input field
