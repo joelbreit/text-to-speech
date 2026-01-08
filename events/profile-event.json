@@ -1,0 +1,17 @@
+{
+  "resource": "/profile",
+  "path": "/profile",
+  "httpMethod": "GET",
+  "isBase64Encoded": false,
+  "headers": {
+    "Content-Type": "application/json"
+  },
+  "requestContext": {
+    "authorizer": {
+      "claims": {
+        "sub": "test-user-123",
+        "email": "test@example.com"
+      }
+    }
+  }
+}

@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-A text-to-speech web application for listening to text at accelerated speeds. Currently in Phase 1 (UI implementation) with plans for AWS backend integration, advanced playback controls, and premium TTS APIs.
+A text-to-speech web application for listening to text at accelerated speeds. Phase 1 (UI) and Phase 2 (AWS Infrastructure) are implemented. Ready for Phase 3 (playback speed controls) and Phase 4 (advanced features).
 
 ## Development Commands
 
@@ -29,7 +29,9 @@ npm run preview
 - **Styling**: Tailwind CSS with PostCSS
 - **Build Tool**: Vite 7
 - **Icons**: Lucide React
-- **TTS**: Browser Web Speech API (Phase 1), AWS Polly planned (Phase 2)
+- **TTS**: Browser Web Speech API (guest users), AWS Polly (authenticated users)
+- **Backend**: AWS Lambda, API Gateway, DynamoDB, Cognito
+- **IaC**: AWS SAM (Serverless Application Model)
 
 ## Architecture
 
@@ -60,14 +62,43 @@ Reader.tsx uses the native Web Speech API:
 
 **Important**: The current progress bar implementation cancels and requires restart when seeking. Future implementations should maintain playback position.
 
-## Future Phases
+## Backend Infrastructure (Phase 2 - Implemented)
 
-### Phase 2: AWS Infrastructure
-- API Gateway + Lambda backend (code in this repo)
-- AWS Cognito authentication
-- AWS Polly for authenticated users
-- DynamoDB for usage tracking
-- AWS SAM deployment
+The AWS backend is fully implemented and ready for deployment:
+
+### Infrastructure Components
+- **API Gateway**: REST API with Cognito authorization
+- **Lambda Functions**:
+  - `tts` - Text-to-speech using AWS Polly (POST /tts/synthesize)
+  - `usage` - Usage statistics (GET /usage)
+  - `profile` - User profile info (GET /profile)
+- **DynamoDB**: Usage tracking with 90-day TTL
+- **Cognito**: User Pool + Identity Pool for authentication
+- **Deployment**: AWS SAM with CloudFormation
+
+### Deployment Files
+- `template.yaml` - SAM template defining all infrastructure
+- `backend/*/` - Lambda function code (Node.js 20.x ESM)
+- `samconfig.toml` - SAM configuration for dev/prod environments
+- `deploy.sh` - Automated deployment script
+- `DEPLOYMENT.md` - Comprehensive deployment guide
+- `QUICKSTART.md` - Quick deployment reference
+
+### Deploying the Backend
+```bash
+# First-time deployment (requires SAM CLI)
+./deploy.sh guided
+
+# Subsequent deployments
+./deploy.sh deploy
+
+# Get stack outputs (API endpoint, Cognito IDs, etc.)
+./deploy.sh outputs
+```
+
+See [QUICKSTART.md](./QUICKSTART.md) for detailed deployment instructions.
+
+## Future Phases
 
 ### Phase 3: Playback Speed
 - Speed controls (+/- 0.1x increments)

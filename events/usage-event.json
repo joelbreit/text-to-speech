@@ -1,0 +1,21 @@
+{
+  "resource": "/usage",
+  "path": "/usage",
+  "httpMethod": "GET",
+  "isBase64Encoded": false,
+  "queryStringParameters": {
+    "days": "30",
+    "limit": "100"
+  },
+  "headers": {
+    "Content-Type": "application/json"
+  },
+  "requestContext": {
+    "authorizer": {
+      "claims": {
+        "sub": "test-user-123",
+        "email": "test@example.com"
+      }
+    }
+  }
+}

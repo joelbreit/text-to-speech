@@ -22,3 +22,10 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# AWS SAM
+.aws-sam/
+samconfig.toml.bak
+packaged.yaml
+backend/*/node_modules/
+backend/*/package-lock.json
