@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-A text-to-speech web application for listening to text at accelerated speeds. Phase 1 (UI), Phase 2 (AWS Infrastructure), and Phase 2.1 (User Login UI) are implemented. Ready for Phase 3 (playback speed controls) and Phase 4 (advanced features).
+A text-to-speech web application for listening to text at accelerated speeds. Phase 1 (UI), Phase 2 (AWS Infrastructure), Phase 2.1 (User Login UI), and Phase 3 (Playback Speed & AWS Polly) are implemented. Ready for Phase 4 (advanced features).
 
 ## Development Commands
 
@@ -51,16 +51,24 @@ Two main routes defined in App.tsx:
 
 Both routes render within the Layout component which provides persistent navigation.
 
-### TTS Implementation (Phase 1)
+### TTS Implementation
 
-Reader.tsx uses the native Web Speech API:
+Reader.tsx supports dual TTS modes:
+
+**Browser Web Speech API** (guest users):
 - `SpeechSynthesisUtterance` for text-to-speech conversion
-- Manual progress tracking via time estimation (0.4 seconds per word)
-- Volume control synced with utterance object
+- Manual progress tracking via time estimation (0.4 seconds per word / speed)
+- Volume and speed control synced with utterance object
 - Play/pause state management with time tracking refs
-- Progress bar with click-to-seek functionality (restarts speech)
 
-**Important**: The current progress bar implementation cancels and requires restart when seeking. Future implementations should maintain playback position.
+**AWS Polly** (authenticated users):
+- Calls backend `/tts/synthesize` endpoint with auth token
+- Backend returns presigned S3 URL to audio file
+- HTML5 Audio element for playback
+- Accurate duration from audio metadata
+- Real-time speed changes during playback
+
+**Important**: The progress bar click-to-seek cancels and requires restart for both implementations. Future versions should maintain playback position.
 
 ## Backend Infrastructure (Phase 2 - Implemented)
 
@@ -145,11 +153,47 @@ Before running the app, you need to configure your AWS credentials:
 
 **Note**: The app works without authentication using browser Web Speech API. Authentication is only required for AWS Polly TTS and usage tracking features.
 
-## Future Phases
+## Playback Speed & AWS Polly Integration (Phase 3 - Implemented)
 
-### Phase 3: Playback Speed
-- Speed controls (+/- 0.1x increments)
-- Local storage persistence
+The app now features playback speed controls and AWS Polly integration for authenticated users:
+
+### Speed Controls
+- **Speed Display**: Shows current playback speed (e.g., "1.5x")
+- **Increment/Decrement Buttons**: +/- buttons to adjust speed by 0.1x increments
+- **Speed Range**: 0.5x to 3.0x playback speed
+- **LocalStorage Persistence**: Speed preference is saved and restored across sessions
+- **Real-time Updates**: Speed changes apply to currently playing audio (Polly only)
+
+### Dual TTS System
+- **Guest Users**: Uses browser Web Speech API with speed support
+- **Authenticated Users**: Uses AWS Polly for high-quality, natural-sounding speech
+- **Automatic Fallback**: If Polly fails, automatically falls back to browser TTS
+- **Visual Indicator**: Shows "Using AWS Polly for high-quality text-to-speech" when logged in
+
+### Implementation Details
+- **pollyTTS.ts**: Service class for AWS Polly API integration
+  - Calls `/tts/synthesize` endpoint with auth token
+  - Returns audio URL from Polly
+  - Manages HTML5 Audio playback with speed control
+  - Provides pause/resume/stop controls
+  - Tracks current time and duration
+
+- **Reader.tsx Updates**:
+  - Dual-mode operation (browser vs Polly)
+  - Speed state with localStorage
+  - Loading states during Polly synthesis
+  - Error handling with fallback
+  - Volume and speed controls work with both engines
+  - Progress tracking for both TTS methods
+
+### Key Features
+- Speed persists across page reloads via localStorage
+- Volume controls work independently for both TTS engines
+- Progress bar and time display work for both engines
+- Polly provides more accurate duration tracking
+- Speed can be changed during playback (Polly only)
+
+## Future Phases
 
 ### Phase 4: Advanced Features
 - Real-time playback updates
