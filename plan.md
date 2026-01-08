@@ -39,11 +39,19 @@ This app will primarily be a simple way to use text-to-speech APIs to listen to 
   - Cognito for authentication and authorization
   - AWS SAM for deploying the infrastructure
 
+### Phase 2.1 User Login UI:
+
+- Update default state to be logged out
+- Add login and signup buttons to the header
+- Add login/signup modal
+- Connect login/signup/logout to the backend
+
 ### Phase 3 Playback Speed:
 
 - speed display
 - +/- buttons to increase/decrease speed by 0.1x at a time
 - Speed will be stored and retrieved from local storage
+- Use AWS Polly for text-to-speech when logged in
 
 ### Phase 4 Advanced Features:
 
