@@ -190,6 +190,7 @@ Resources:
             - Effect: Allow
               Action:
                 - polly:SynthesizeSpeech
+                - polly:DescribeVoices
               Resource: '*'
       Events:
         SynthesizeText:
@@ -198,6 +199,12 @@ Resources:
             RestApiId: !Ref ApiGateway
             Path: /tts/synthesize
             Method: POST
+        GetVoices:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ApiGateway
+            Path: /tts/voices
+            Method: GET
 
   # Lambda Function for Usage Statistics
   UsageFunction:

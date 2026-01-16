@@ -11,11 +11,45 @@ interface SynthesizeSpeechResponse {
 	characterCount: number;
 }
 
+export interface PollyVoice {
+	id: string;
+	name: string;
+	gender: string;
+	engine: string[];
+	languageCode: string;
+	languageName: string;
+}
+
 export class PollyTTSService {
 	private audio: HTMLAudioElement | null = null;
 	private onEndCallback: (() => void) | null = null;
 	private onErrorCallback: (() => void) | null = null;
 	private objectUrl: string | null = null;
+	private voicesCache: PollyVoice[] | null = null;
+
+	async getVoices(authToken: string): Promise<PollyVoice[]> {
+		// Return cached voices if available
+		if (this.voicesCache) {
+			return this.voicesCache;
+		}
+
+		const response = await fetch(`${apiConfig.endpoint}/tts/voices`, {
+			method: "GET",
+			headers: {
+				"Content-Type": "application/json",
+				Authorization: `Bearer ${authToken}`,
+			},
+		});
+
+		if (!response.ok) {
+			const error = await response.text();
+			throw new Error(`Failed to get voices: ${error}`);
+		}
+
+		const data = await response.json();
+		this.voicesCache = data.voices;
+		return data.voices;
+	}
 
 	async synthesizeSpeech(
 		params: SynthesizeSpeechParams,

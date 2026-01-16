@@ -1,10 +1,12 @@
 import { useState, useEffect, useRef } from 'react';
-import { Play, Pause, Volume2, Plus, Minus } from 'lucide-react';
+import { Play, Pause, Volume2, Plus, Minus, Mic } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
-import { PollyTTSService } from '../services/pollyTTS';
+import { PollyTTSService, type PollyVoice } from '../services/pollyTTS';
 
 const SPEED_STORAGE_KEY = 'tts-playback-speed';
+const VOICE_STORAGE_KEY = 'tts-voice-id';
 const DEFAULT_SPEED = 1.0;
+const DEFAULT_VOICE = 'Joanna';
 const MIN_SPEED = 0.5;
 const MAX_SPEED = 3.0;
 const SPEED_INCREMENT = 0.1;
@@ -18,6 +20,12 @@ export default function Reader() {
     const saved = localStorage.getItem(SPEED_STORAGE_KEY);
     return saved ? parseFloat(saved) : DEFAULT_SPEED;
   });
+  const [selectedVoice, setSelectedVoice] = useState(() => {
+    const saved = localStorage.getItem(VOICE_STORAGE_KEY);
+    return saved || DEFAULT_VOICE;
+  });
+  const [availableVoices, setAvailableVoices] = useState<PollyVoice[]>([]);
+  const [isLoadingVoices, setIsLoadingVoices] = useState(false);
   const [progress, setProgress] = useState(0);
   const [currentTime, setCurrentTime] = useState(0);
   const [totalTime, setTotalTime] = useState(0);
@@ -43,14 +51,49 @@ export default function Reader() {
     localStorage.setItem(SPEED_STORAGE_KEY, speed.toString());
   }, [speed]);
 
-  // Clear cached audio when text changes
+  // Save selected voice to localStorage
+  useEffect(() => {
+    localStorage.setItem(VOICE_STORAGE_KEY, selectedVoice);
+  }, [selectedVoice]);
+
+  // Load available voices when authenticated
+  useEffect(() => {
+    const loadVoices = async () => {
+      if (!isAuthenticated) {
+        setAvailableVoices([]);
+        return;
+      }
+
+      setIsLoadingVoices(true);
+      try {
+        const token = await getAuthToken();
+        if (token) {
+          const voices = await pollyServiceRef.current.getVoices(token);
+          setAvailableVoices(voices);
+          
+          // If current voice isn't in the list, reset to default
+          if (!voices.some(v => v.id === selectedVoice)) {
+            setSelectedVoice(DEFAULT_VOICE);
+          }
+        }
+      } catch (err) {
+        console.error('Failed to load voices:', err);
+      } finally {
+        setIsLoadingVoices(false);
+      }
+    };
+
+    loadVoices();
+  }, [isAuthenticated, getAuthToken]);
+
+  // Clear cached audio when text or voice changes
   useEffect(() => {
     if (audioUrlRef.current) {
       pollyServiceRef.current.stop();
       audioUrlRef.current = '';
       setIsPlaying(false);
     }
-  }, [text]);
+  }, [text, selectedVoice]);
 
   const handlePlayPause = () => {
     setError('');
@@ -141,7 +184,7 @@ export default function Reader() {
       }
 
       const result = await pollyServiceRef.current.synthesizeSpeech(
-        { text, speed },
+        { text, speed, voiceId: selectedVoice },
         token
       );
 
@@ -273,10 +316,35 @@ export default function Reader() {
         <h1 className="text-4xl font-bold text-gray-800 mb-8">Text-to-Speech Reader</h1>
 
         {isAuthenticated && (
-          <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-            <p className="text-sm text-blue-700">
+          <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+            <p className="text-sm text-blue-700 mb-3">
               Using AWS Polly for high-quality text-to-speech
             </p>
+            <div className="flex items-center space-x-3">
+              <Mic className="text-blue-600" size={20} />
+              <label htmlFor="voice-select" className="text-sm font-medium text-blue-800">
+                Voice:
+              </label>
+              <select
+                id="voice-select"
+                value={selectedVoice}
+                onChange={(e) => setSelectedVoice(e.target.value)}
+                disabled={isLoadingVoices || availableVoices.length === 0}
+                className="flex-1 max-w-xs px-3 py-2 bg-white border border-blue-300 rounded-lg text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+              >
+                {isLoadingVoices ? (
+                  <option>Loading voices...</option>
+                ) : availableVoices.length === 0 ? (
+                  <option value={DEFAULT_VOICE}>Joanna (Default)</option>
+                ) : (
+                  availableVoices.map((voice) => (
+                    <option key={voice.id} value={voice.id}>
+                      {voice.name} ({voice.gender}) - {voice.engine.includes('neural') ? 'Neural' : 'Standard'}
+                    </option>
+                  ))
+                )}
+              </select>
+            </div>
           </div>
         )}
 
