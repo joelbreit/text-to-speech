@@ -311,18 +311,23 @@ export default function Reader() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 p-8">
+    <div className="min-h-screen p-8">
       <div className="max-w-4xl mx-auto">
-        <h1 className="text-4xl font-bold text-gray-800 mb-8">Text-to-Speech Reader</h1>
+        <h1 className="text-3xl font-semibold mb-2 bg-gradient-to-r from-orange-400 to-pink-400 dark:from-purple-400 dark:to-pink-400 bg-clip-text text-transparent">
+          Text-to-Speech Reader
+        </h1>
+        <p className="text-gray-600 dark:text-purple-300/70 text-sm mb-8">
+          Paste your text and listen at your preferred speed
+        </p>
 
         {isAuthenticated && (
-          <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-            <p className="text-sm text-blue-700 mb-3">
+          <div className="mb-6 p-4 bg-orange-100/50 dark:bg-purple-500/20 border border-orange-200 dark:border-purple-500/30 rounded-2xl backdrop-blur-sm">
+            <p className="text-sm text-orange-700 dark:text-purple-200 mb-3">
               Using AWS Polly for high-quality text-to-speech
             </p>
             <div className="flex items-center space-x-3">
-              <Mic className="text-blue-600" size={20} />
-              <label htmlFor="voice-select" className="text-sm font-medium text-blue-800">
+              <Mic className="text-orange-500 dark:text-purple-400" size={20} />
+              <label htmlFor="voice-select" className="text-sm font-medium text-orange-700 dark:text-purple-300">
                 Voice:
               </label>
               <select
@@ -330,7 +335,7 @@ export default function Reader() {
                 value={selectedVoice}
                 onChange={(e) => setSelectedVoice(e.target.value)}
                 disabled={isLoadingVoices || availableVoices.length === 0}
-                className="flex-1 max-w-xs px-3 py-2 bg-white border border-blue-300 rounded-lg text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+                className="flex-1 max-w-xs px-4 py-2 bg-white/80 dark:bg-slate-700/80 border border-orange-200 dark:border-purple-500/30 rounded-full text-sm text-gray-800 dark:text-purple-100 focus:outline-none focus:ring-2 focus:ring-orange-400 dark:focus:ring-purple-500 disabled:bg-gray-100 dark:disabled:bg-slate-600 disabled:cursor-not-allowed transition-all duration-300"
               >
                 {isLoadingVoices ? (
                   <option>Loading voices...</option>
@@ -349,23 +354,23 @@ export default function Reader() {
         )}
 
         {error && (
-          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
-            <p className="text-sm text-red-700">{error}</p>
+          <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-500/30 rounded-2xl">
+            <p className="text-sm text-red-700 dark:text-red-300">{error}</p>
           </div>
         )}
 
-        <div className="bg-white rounded-lg shadow-lg p-8">
+        <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-md rounded-3xl shadow-xl p-8">
           <textarea
             value={text}
             onChange={(e) => setText(e.target.value)}
             placeholder="Enter or paste your text here..."
-            className="w-full h-48 p-4 border border-gray-300 rounded-lg mb-6 text-gray-800 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full h-48 p-4 bg-orange-50/50 dark:bg-slate-700/50 border border-orange-200 dark:border-purple-500/30 rounded-2xl mb-6 text-lg text-gray-800 dark:text-purple-100 resize-none focus:outline-none focus:ring-2 focus:ring-orange-400 dark:focus:ring-purple-500 placeholder-gray-400 dark:placeholder-purple-400/50 transition-all duration-300"
           />
 
           <div className="flex flex-col items-center space-y-6">
             <button
               onClick={handlePlayPause}
-              className="w-24 h-24 bg-blue-500 hover:bg-blue-600 text-white rounded-full flex items-center justify-center transition-colors shadow-lg disabled:bg-gray-300 disabled:cursor-not-allowed"
+              className="w-24 h-24 bg-gradient-to-r from-orange-400 to-pink-400 dark:from-purple-500 dark:to-pink-500 hover:from-orange-500 hover:to-pink-500 dark:hover:from-purple-600 dark:hover:to-pink-600 text-white rounded-full flex items-center justify-center transition-all duration-300 shadow-lg hover:shadow-xl dark:shadow-purple-500/30 disabled:from-gray-300 disabled:to-gray-400 disabled:cursor-not-allowed"
               disabled={!text.trim() || isLoading}
             >
               {isLoading ? (
@@ -379,23 +384,23 @@ export default function Reader() {
 
             <div className="w-full">
               <div
-                className="w-full h-3 bg-gray-200 rounded-full cursor-pointer mb-2"
+                className="w-full h-2 bg-orange-100 dark:bg-purple-900/50 rounded-full cursor-pointer mb-2 overflow-hidden"
                 onClick={handleProgressClick}
               >
                 <div
-                  className="h-full bg-blue-500 rounded-full transition-all"
+                  className={`h-full bg-gradient-to-r from-orange-400 to-pink-400 dark:from-purple-500 dark:to-pink-500 rounded-full transition-all duration-100 ${isPlaying ? 'animate-pulse' : ''}`}
                   style={{ width: `${progress}%` }}
                 />
               </div>
 
-              <div className="flex justify-between text-sm text-gray-600">
+              <div className="flex justify-between text-sm text-gray-600 dark:text-purple-300">
                 <span>{formatTime(currentTime)}</span>
                 <span>{formatTime(totalTime)}</span>
               </div>
             </div>
 
             <div className="w-full flex items-center space-x-4">
-              <Volume2 className="text-gray-600" size={24} />
+              <Volume2 className="text-orange-500 dark:text-purple-400" size={24} />
               <input
                 type="range"
                 min="0"
@@ -403,9 +408,9 @@ export default function Reader() {
                 step="0.01"
                 value={volume}
                 onChange={handleVolumeChange}
-                className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                className="flex-1 h-2 bg-orange-100 dark:bg-purple-900/50 rounded-full appearance-none cursor-pointer accent-orange-400 dark:accent-purple-500"
               />
-              <span className="text-gray-600 w-12 text-right">
+              <span className="text-orange-700 dark:text-purple-300 w-12 text-right font-medium">
                 {Math.round(volume * 100)}%
               </span>
             </div>
@@ -414,21 +419,21 @@ export default function Reader() {
               <button
                 onClick={decreaseSpeed}
                 disabled={speed <= MIN_SPEED}
-                className="w-10 h-10 bg-gray-200 hover:bg-gray-300 disabled:bg-gray-100 disabled:text-gray-400 text-gray-700 rounded-lg flex items-center justify-center transition-colors"
+                className="w-10 h-10 bg-orange-100 dark:bg-purple-900/50 hover:bg-orange-200 dark:hover:bg-purple-800/50 disabled:bg-gray-100 dark:disabled:bg-slate-700 disabled:text-gray-400 dark:disabled:text-slate-500 text-orange-600 dark:text-purple-300 rounded-full flex items-center justify-center transition-all duration-300"
                 title="Decrease speed"
               >
                 <Minus size={20} />
               </button>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-gray-800">
+              <div className="text-center min-w-[80px]">
+                <div className="text-2xl font-bold bg-gradient-to-r from-orange-400 to-pink-400 dark:from-purple-400 dark:to-pink-400 bg-clip-text text-transparent">
                   {speed.toFixed(1)}x
                 </div>
-                <div className="text-xs text-gray-500">Speed</div>
+                <div className="text-xs text-orange-600/70 dark:text-purple-400/70 font-medium">Speed</div>
               </div>
               <button
                 onClick={increaseSpeed}
                 disabled={speed >= MAX_SPEED}
-                className="w-10 h-10 bg-gray-200 hover:bg-gray-300 disabled:bg-gray-100 disabled:text-gray-400 text-gray-700 rounded-lg flex items-center justify-center transition-colors"
+                className="w-10 h-10 bg-orange-100 dark:bg-purple-900/50 hover:bg-orange-200 dark:hover:bg-purple-800/50 disabled:bg-gray-100 dark:disabled:bg-slate-700 disabled:text-gray-400 dark:disabled:text-slate-500 text-orange-600 dark:text-purple-300 rounded-full flex items-center justify-center transition-all duration-300"
                 title="Increase speed"
               >
                 <Plus size={20} />

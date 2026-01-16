@@ -53,11 +53,6 @@ This app will primarily be a simple way to use text-to-speech APIs to listen to 
 - Speed will be stored and retrieved from local storage
 - Use AWS Polly for text-to-speech when logged in
 
-### Phase 4 Advanced Features:
-
-- playback speed adjustment including ability to increase/decrease by 0.1x at a time
-- playback updates in real time
-
 ### Extra features:
 
 - keyboard shortcuts

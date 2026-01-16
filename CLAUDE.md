@@ -196,7 +196,6 @@ The app now features playback speed controls and AWS Polly integration for authe
 ## Future Phases
 
 ### Phase 4: Advanced Features
-- Real-time playback updates
 - Keyboard shortcuts
 - Additional TTS providers (Eleven Labs)
 - Usage cost estimation
