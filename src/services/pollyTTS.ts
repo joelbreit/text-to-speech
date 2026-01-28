@@ -4,6 +4,7 @@ interface SynthesizeSpeechParams {
 	text: string;
 	speed: number;
 	voiceId?: string;
+	engine?: string;
 }
 
 interface SynthesizeSpeechResponse {
@@ -53,7 +54,7 @@ export class PollyTTSService {
 
 	async synthesizeSpeech(
 		params: SynthesizeSpeechParams,
-		authToken: string
+		authToken: string,
 	): Promise<SynthesizeSpeechResponse> {
 		const response = await fetch(`${apiConfig.endpoint}/tts/synthesize`, {
 			method: "POST",
@@ -63,7 +64,8 @@ export class PollyTTSService {
 			},
 			body: JSON.stringify({
 				text: params.text,
-				voiceId: params.voiceId || "Joanna",
+				voiceId: params.voiceId || "Ruth",
+				engine: params.engine || "neural",
 				speed: params.speed,
 			}),
 		});
@@ -75,6 +77,11 @@ export class PollyTTSService {
 
 		const data = await response.json();
 		console.log("Polly TTS response:", data);
+
+		// Estimated cost
+		const costPerMillion = params.engine === "neural" ? 16 : 30;
+		const cost = (data.characterCount / 1000000) * costPerMillion;
+		console.log(`Estimated cost (${params.engine}): $${cost.toFixed(4)}`);
 
 		// Convert base64 audio content to blob URL
 		const audioContent = data.audioContent;

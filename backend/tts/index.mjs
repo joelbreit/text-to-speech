@@ -79,7 +79,7 @@ async function handleSynthesizeSpeech(event, headers) {
 	try {
 		// Parse request body
 		const body = typeof event.body === 'string' ? JSON.parse(event.body) : event.body;
-		const { text, voiceId = 'Joanna', engine = 'neural', outputFormat = 'mp3' } = body;
+		const { text, voiceId = 'Ruth', engine = 'neural', outputFormat = 'mp3' } = body;
 
 		// Validate input
 		if (!text || typeof text !== 'string' || text.trim().length === 0) {

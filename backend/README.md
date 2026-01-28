@@ -42,7 +42,7 @@ Converts text to speech using AWS Polly.
 
 **Features**:
 - Supports all AWS Polly voices
-- Neural and standard engines
+- Generative and neural engines
 - Multiple output formats (mp3, ogg, pcm)
 - Automatic usage tracking
 - 100,000 character limit per request

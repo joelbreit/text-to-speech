@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="primaryGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fb923c"/>
+      <stop offset="100%" stop-color="#f472b6"/>
+    </linearGradient>
+    <linearGradient id="waveGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="100%" stop-color="#fef3c7"/>
+    </linearGradient>
+  </defs>
+  
+  <!-- Background circle -->
+  <circle cx="256" cy="256" r="240" fill="url(#primaryGradient)"/>
+  
+  <!-- Speech bubble / document shape -->
+  <path d="M140 120 
+           h180 
+           q30 0 30 30 
+           v180 
+           q0 30 -30 30 
+           h-100 
+           l-50 50 
+           v-50 
+           h-30 
+           q-30 0 -30 -30 
+           v-180 
+           q0 -30 30 -30z" 
+        fill="white" 
+        opacity="0.95"/>
+  
+  <!-- Text lines on document -->
+  <rect x="170" y="160" width="120" height="12" rx="6" fill="url(#primaryGradient)" opacity="0.6"/>
+  <rect x="170" y="190" width="100" height="12" rx="6" fill="url(#primaryGradient)" opacity="0.5"/>
+  <rect x="170" y="220" width="80" height="12" rx="6" fill="url(#primaryGradient)" opacity="0.4"/>
+  
+  <!-- Sound waves emanating from the right -->
+  <path d="M330 200 q25 56 0 112" 
+        stroke="white" 
+        stroke-width="16" 
+        stroke-linecap="round" 
+        fill="none"
+        opacity="0.9"/>
+  <path d="M360 170 q40 86 0 172" 
+        stroke="white" 
+        stroke-width="14" 
+        stroke-linecap="round" 
+        fill="none"
+        opacity="0.7"/>
+  <path d="M390 145 q50 111 0 222" 
+        stroke="white" 
+        stroke-width="12" 
+        stroke-linecap="round" 
+        fill="none"
+        opacity="0.5"/>
+</svg>
