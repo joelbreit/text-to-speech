@@ -160,7 +160,7 @@ The app now features playback speed controls and AWS Polly integration for authe
 ### Speed Controls
 - **Speed Display**: Shows current playback speed (e.g., "1.5x")
 - **Increment/Decrement Buttons**: +/- buttons to adjust speed by 0.1x increments
-- **Speed Range**: 0.5x to 3.0x playback speed
+- **Speed Range**: 0.5x to 4.0x playback speed
 - **LocalStorage Persistence**: Speed preference is saved and restored across sessions
 - **Real-time Updates**: Speed changes apply to currently playing audio (Polly only)
 

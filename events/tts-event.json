@@ -1,5 +1,5 @@
 {
-  "body": "{\"text\":\"Hello, this is a test of the AWS Polly text-to-speech service. The quick brown fox jumps over the lazy dog.\",\"voiceId\":\"Joanna\",\"engine\":\"neural\",\"outputFormat\":\"mp3\"}",
+  "body": "{\"text\":\"Hello, this is a test of the AWS Polly text-to-speech service. The quick brown fox jumps over the lazy dog.\",\"voiceId\":\"Ruth\",\"engine\":\"neural\",\"outputFormat\":\"mp3\"}",
   "resource": "/tts/synthesize",
   "path": "/tts/synthesize",
   "httpMethod": "POST",

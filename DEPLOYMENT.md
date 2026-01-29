@@ -205,7 +205,7 @@ export const awsConfig = {
    curl -X POST \
      -H "Authorization: Bearer YOUR_ID_TOKEN" \
      -H "Content-Type: application/json" \
-     -d '{"text":"Hello world","voiceId":"Joanna"}' \
+     -d '{"text":"Hello world","voiceId":"Ruth"}' \
      YOUR_API_ENDPOINT/tts/synthesize
    ```
 

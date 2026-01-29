@@ -23,7 +23,7 @@ Converts text to speech using AWS Polly.
 ```json
 {
   "text": "Text to convert to speech",
-  "voiceId": "Joanna",
+  "voiceId": "Ruth",
   "engine": "neural",
   "outputFormat": "mp3"
 }
@@ -35,7 +35,7 @@ Converts text to speech using AWS Polly.
   "audioContent": "base64-encoded-audio",
   "contentType": "audio/mpeg",
   "characterCount": 25,
-  "voiceId": "Joanna",
+  "voiceId": "Ruth",
   "engine": "neural"
 }
 ```
@@ -72,7 +72,7 @@ Retrieves usage statistics for authenticated users.
     "averageCharactersPerRequest": 297
   },
   "voiceUsage": {
-    "Joanna": {
+    "Ruth": {
       "count": 30,
       "characters": 9000
     },

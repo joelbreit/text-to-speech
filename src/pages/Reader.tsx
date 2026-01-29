@@ -1,17 +1,31 @@
 import { useState, useEffect, useRef } from "react";
-import { Play, Pause, Volume2, Plus, Minus, Mic } from "lucide-react";
+import {
+	Play,
+	Pause,
+	Volume2,
+	Plus,
+	Minus,
+	Mic,
+	X,
+	Sparkles,
+	Globe,
+} from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
 import { PollyTTSService, type PollyVoice } from "../services/pollyTTS";
 
 const SPEED_STORAGE_KEY = "tts-playback-speed";
 const VOICE_STORAGE_KEY = "tts-voice-id";
+const TTS_ENGINE_STORAGE_KEY = "tts-engine";
+const BANNER_DISMISSED_KEY = "tts-guest-banner-dismissed";
 const DEFAULT_SPEED = 1.0;
 const DEFAULT_VOICE_ID = "Ruth";
 const DEFAULT_VOICE_ENGINE = "neural";
 const DEFAULT_VOICE_KEY = `${DEFAULT_VOICE_ID}:${DEFAULT_VOICE_ENGINE}`;
 const MIN_SPEED = 0.5;
-const MAX_SPEED = 3.0;
+const MAX_SPEED = 4.0;
 const SPEED_INCREMENT = 0.1;
+
+type TTSEngine = "browser" | "polly";
 
 export default function Reader() {
 	const { isAuthenticated, getAuthToken } = useAuth();
@@ -32,6 +46,18 @@ export default function Reader() {
 		}
 		return DEFAULT_VOICE_KEY;
 	});
+	const [ttsEngine, setTtsEngine] = useState<TTSEngine>(() => {
+		const saved = localStorage.getItem(TTS_ENGINE_STORAGE_KEY);
+		// Default to 'polly' for authenticated users, 'browser' for guests
+		// But respect saved preference if it exists
+		if (saved === "browser" || saved === "polly") {
+			return saved;
+		}
+		return "polly"; // Will be overridden to 'browser' if not authenticated
+	});
+	const [bannerDismissed, setBannerDismissed] = useState(() => {
+		return localStorage.getItem(BANNER_DISMISSED_KEY) === "true";
+	});
 	const [availableVoices, setAvailableVoices] = useState<PollyVoice[]>([]);
 	const [voiceOptions, setVoiceOptions] = useState<
 		Array<PollyVoice & { engineVariant: string }>
@@ -42,6 +68,9 @@ export default function Reader() {
 	const [totalTime, setTotalTime] = useState(0);
 	const [isLoading, setIsLoading] = useState(false);
 	const [error, setError] = useState("");
+
+	// Effective engine: use browser if not authenticated, otherwise use selected engine
+	const effectiveEngine: TTSEngine = isAuthenticated ? ttsEngine : "browser";
 
 	const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
 	const pollyServiceRef = useRef<PollyTTSService>(new PollyTTSService());
@@ -66,6 +95,24 @@ export default function Reader() {
 	useEffect(() => {
 		localStorage.setItem(VOICE_STORAGE_KEY, selectedVoice);
 	}, [selectedVoice]);
+
+	// Save TTS engine preference to localStorage
+	useEffect(() => {
+		localStorage.setItem(TTS_ENGINE_STORAGE_KEY, ttsEngine);
+	}, [ttsEngine]);
+
+	// Auto-switch to Polly when user logs in
+	useEffect(() => {
+		if (isAuthenticated) {
+			setTtsEngine("polly");
+		}
+	}, [isAuthenticated]);
+
+	// Handle banner dismissal
+	const dismissBanner = () => {
+		setBannerDismissed(true);
+		localStorage.setItem(BANNER_DISMISSED_KEY, "true");
+	};
 
 	// Load available voices when authenticated
 	useEffect(() => {
@@ -144,20 +191,25 @@ export default function Reader() {
 		loadVoices();
 	}, [isAuthenticated, getAuthToken, selectedVoice]);
 
-	// Clear cached audio when text or voice changes
+	// Clear cached audio when text, voice, or engine changes
 	useEffect(() => {
 		if (audioUrlRef.current) {
 			pollyServiceRef.current.stop();
 			audioUrlRef.current = "";
 			setIsPlaying(false);
 		}
-	}, [text, selectedVoice]);
+		// Also cancel browser speech if switching engines
+		if (window.speechSynthesis.speaking) {
+			window.speechSynthesis.cancel();
+			setIsPlaying(false);
+		}
+	}, [text, selectedVoice, effectiveEngine]);
 
 	const handlePlayPause = () => {
 		setError("");
 
 		if (isPlaying) {
-			if (isAuthenticated) {
+			if (effectiveEngine === "polly") {
 				pollyServiceRef.current.pause();
 			} else {
 				window.speechSynthesis.pause();
@@ -165,7 +217,7 @@ export default function Reader() {
 			}
 			setIsPlaying(false);
 		} else {
-			if (isAuthenticated) {
+			if (effectiveEngine === "polly") {
 				if (
 					audioUrlRef.current &&
 					!pollyServiceRef.current.isPaused()
@@ -196,7 +248,7 @@ export default function Reader() {
 		setProgress(0);
 		setCurrentTime(0);
 
-		if (isAuthenticated) {
+		if (effectiveEngine === "polly") {
 			await startPollySpeech();
 		} else {
 			startBrowserSpeech();
@@ -300,7 +352,7 @@ export default function Reader() {
 			interval = window.setInterval(() => {
 				let elapsed: number;
 
-				if (isAuthenticated) {
+				if (effectiveEngine === "polly") {
 					elapsed = pollyServiceRef.current.getCurrentTime();
 					const duration = pollyServiceRef.current.getDuration();
 					if (duration && duration > 0) {
@@ -324,13 +376,13 @@ export default function Reader() {
 				clearInterval(interval);
 			}
 		};
-	}, [isPlaying, totalTime, isAuthenticated]);
+	}, [isPlaying, totalTime, effectiveEngine]);
 
 	const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 		const newVolume = parseFloat(e.target.value);
 		setVolume(newVolume);
 
-		if (isAuthenticated) {
+		if (effectiveEngine === "polly") {
 			pollyServiceRef.current.setVolume(newVolume);
 		} else if (utteranceRef.current) {
 			utteranceRef.current.volume = newVolume;
@@ -340,7 +392,7 @@ export default function Reader() {
 	const increaseSpeed = () => {
 		setSpeed((prev) => {
 			const newSpeed = Math.min(prev + SPEED_INCREMENT, MAX_SPEED);
-			if (isAuthenticated && audioUrlRef.current) {
+			if (effectiveEngine === "polly" && audioUrlRef.current) {
 				pollyServiceRef.current.setSpeed(newSpeed);
 			}
 			return newSpeed;
@@ -350,7 +402,7 @@ export default function Reader() {
 	const decreaseSpeed = () => {
 		setSpeed((prev) => {
 			const newSpeed = Math.max(prev - SPEED_INCREMENT, MIN_SPEED);
-			if (isAuthenticated && audioUrlRef.current) {
+			if (effectiveEngine === "polly" && audioUrlRef.current) {
 				pollyServiceRef.current.setSpeed(newSpeed);
 			}
 			return newSpeed;
@@ -365,7 +417,7 @@ export default function Reader() {
 		setProgress(newProgress);
 		setCurrentTime((newProgress / 100) * totalTime);
 
-		if (isAuthenticated) {
+		if (effectiveEngine === "polly") {
 			pollyServiceRef.current.stop();
 			audioUrlRef.current = "";
 			setIsPlaying(false);
@@ -391,12 +443,146 @@ export default function Reader() {
 					Paste your text and listen at your preferred speed
 				</p>
 
-				{isAuthenticated && (
-					<div className="mb-6 p-4 bg-orange-100/50 dark:bg-purple-500/20 border border-orange-200 dark:border-purple-500/30 rounded-2xl backdrop-blur-sm">
-						<p className="text-sm text-orange-700 dark:text-purple-200 mb-3">
-							Using AWS Polly for high-quality text-to-speech
-						</p>
-						<div className="flex items-center space-x-3">
+				{/* Guest Banner - Dismissable */}
+				{!isAuthenticated && !bannerDismissed && (
+					<div className="mb-6 p-4 bg-gradient-to-r from-orange-100/80 to-pink-100/80 dark:from-purple-500/30 dark:to-pink-500/30 border border-orange-200 dark:border-purple-500/30 rounded-2xl backdrop-blur-sm relative">
+						<button
+							onClick={dismissBanner}
+							className="absolute top-3 right-3 p-1 text-orange-400 dark:text-purple-400 hover:text-orange-600 dark:hover:text-purple-200 transition-colors"
+							title="Dismiss"
+						>
+							<X size={18} />
+						</button>
+						<div className="flex items-start space-x-3 pr-8">
+							<Sparkles
+								className="text-orange-500 dark:text-purple-400 mt-0.5 flex-shrink-0"
+								size={20}
+							/>
+							<div>
+								<p className="text-sm font-medium text-orange-800 dark:text-purple-100 mb-1">
+									Unlock Better Voices
+								</p>
+								<p className="text-sm text-orange-700 dark:text-purple-200/80">
+									High-quality voices from the AWS Polly API
+									are available for free when you create an
+									account.
+								</p>
+							</div>
+						</div>
+					</div>
+				)}
+
+				{/* TTS Engine Selector */}
+				<div className="mb-6 p-4 bg-white/60 dark:bg-slate-800/60 border border-orange-200/50 dark:border-purple-500/30 rounded-2xl backdrop-blur-sm">
+					<p className="text-sm font-medium text-gray-700 dark:text-purple-200 mb-3">
+						Text-to-Speech Engine
+					</p>
+					<div className="flex flex-col gap-3">
+						{/* AWS Polly Option - Primary, shown first */}
+						<button
+							onClick={() =>
+								isAuthenticated && setTtsEngine("polly")
+							}
+							disabled={!isAuthenticated}
+							className={`flex items-start p-4 rounded-xl border-2 transition-all duration-300 text-left ${
+								!isAuthenticated
+									? "border-gray-200 dark:border-slate-600 bg-gray-50 dark:bg-slate-700/30 cursor-not-allowed"
+									: effectiveEngine === "polly"
+										? "border-orange-400 dark:border-purple-500 bg-orange-50 dark:bg-purple-500/20"
+										: "border-orange-200/50 dark:border-purple-500/20 bg-white/50 dark:bg-slate-700/50 hover:border-orange-300 dark:hover:border-purple-500/40"
+							}`}
+						>
+							<Sparkles
+								className={`mt-0.5 mr-3 flex-shrink-0 ${
+									!isAuthenticated
+										? "text-gray-300 dark:text-slate-500"
+										: effectiveEngine === "polly"
+											? "text-orange-500 dark:text-purple-400"
+											: "text-gray-400 dark:text-purple-400/50"
+								}`}
+								size={20}
+							/>
+							<div className="flex-1 min-w-0">
+								<div className="flex items-center space-x-2">
+									<span
+										className={`text-sm font-medium ${
+											!isAuthenticated
+												? "text-gray-400 dark:text-slate-400"
+												: effectiveEngine === "polly"
+													? "text-orange-700 dark:text-purple-100"
+													: "text-gray-600 dark:text-purple-300/70"
+										}`}
+									>
+										AWS Polly
+									</span>
+									{isAuthenticated &&
+										effectiveEngine === "polly" && (
+											<span className="text-xs px-2 py-0.5 bg-orange-200 dark:bg-purple-500/30 text-orange-700 dark:text-purple-200 rounded-full">
+												Active
+											</span>
+										)}
+									{!isAuthenticated && (
+										<span className="text-xs px-2 py-0.5 bg-gray-200 dark:bg-slate-600 text-gray-500 dark:text-slate-400 rounded-full">
+											Free Account
+										</span>
+									)}
+								</div>
+								<p
+									className={`text-xs mt-1 ${
+										!isAuthenticated
+											? "text-gray-400 dark:text-slate-500"
+											: "text-gray-500 dark:text-purple-400/60"
+									}`}
+								>
+									{isAuthenticated
+										? "High quality · Neural & generative voices"
+										: "Sign in to use high-quality voices"}
+								</p>
+							</div>
+						</button>
+
+						{/* Browser TTS Option - Compact when not selected */}
+						<button
+							onClick={() => setTtsEngine("browser")}
+							className={`flex items-center transition-all duration-300 text-left ${
+								effectiveEngine === "browser"
+									? "p-4 rounded-xl border-2 border-orange-400 dark:border-purple-500 bg-orange-50 dark:bg-purple-500/20"
+									: "px-3 py-2 rounded-lg border border-transparent hover:border-orange-200/50 dark:hover:border-purple-500/20 hover:bg-white/30 dark:hover:bg-slate-700/30"
+							}`}
+						>
+							<Globe
+								className={`flex-shrink-0 ${
+									effectiveEngine === "browser"
+										? "text-orange-500 dark:text-purple-400 mr-3"
+										: "text-gray-400 dark:text-purple-400/40 mr-2"
+								}`}
+								size={effectiveEngine === "browser" ? 20 : 16}
+							/>
+							{effectiveEngine === "browser" ? (
+								<div className="flex-1 min-w-0">
+									<div className="flex items-center space-x-2">
+										<span className="text-sm font-medium text-orange-700 dark:text-purple-100">
+											Browser Web Speech
+										</span>
+										<span className="text-xs px-2 py-0.5 bg-orange-200 dark:bg-purple-500/30 text-orange-700 dark:text-purple-200 rounded-full">
+											Active
+										</span>
+									</div>
+									<p className="text-xs text-gray-500 dark:text-purple-400/60 mt-1">
+										Basic quality · Built into your browser
+									</p>
+								</div>
+							) : (
+								<span className="text-xs text-gray-500 dark:text-purple-400/50 hover:text-gray-600 dark:hover:text-purple-300">
+									Use browser speech instead
+								</span>
+							)}
+						</button>
+					</div>
+
+					{/* Voice selector for AWS Polly */}
+					{isAuthenticated && effectiveEngine === "polly" && (
+						<div className="flex items-center space-x-3 mt-4 pt-4 border-t border-orange-200/50 dark:border-purple-500/20">
 							<Mic
 								className="text-orange-500 dark:text-purple-400"
 								size={20}
@@ -446,8 +632,8 @@ export default function Reader() {
 								)}
 							</select>
 						</div>
-					</div>
-				)}
+					)}
+				</div>
 
 				{error && (
 					<div className="mb-6 p-4 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-500/30 rounded-2xl">
